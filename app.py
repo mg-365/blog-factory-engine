@@ -25,18 +25,19 @@ def add_blog():
 
     try:
         result = supabase.table(TABLE_NAME).insert(data).execute()
-        if result.error:
-            return jsonify({"error": str(result.error)}), 500
+        if result.status_code >= 400:
+            return jsonify({"error": result.data}), 500
         return jsonify({"message": "Blog added!", "data": result.data}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/data', methods=['GET'])
 def get_blogs():
     try:
         result = supabase.table(TABLE_NAME).select("*").order("created_at", desc=True).execute()
-        if result.error:
-            return jsonify({"error": str(result.error)}), 500
+        if result.status_code >= 400:
+            return jsonify({"error": result.data}), 500
         return jsonify(result.data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
