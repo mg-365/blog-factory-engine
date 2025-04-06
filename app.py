@@ -29,3 +29,13 @@ def add_blog():
         json.dump(blogs, f, ensure_ascii=False, indent=2)
 
     return jsonify({'message': 'Blog added!', 'total': len(blogs)}), 200
+
+
+@app.route('/data', methods=['GET'])
+def get_data():
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            blogs = json.load(f)
+        return jsonify(blogs), 200
+    except:
+        return jsonify({'error': 'Cannot read data'}), 500
