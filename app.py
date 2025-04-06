@@ -32,6 +32,19 @@ def get_blogs():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/delete', methods=['POST'])
+def delete_blog():
+    try:
+        data = request.get_json()
+        blog_id = data.get("id")
+        if not blog_id:
+            return jsonify({"error": "No blog id provided"}), 400
+
+        result = supabase.table(TABLE_NAME).delete().eq("id", blog_id).execute()
+        return jsonify({"message": "Blog deleted", "result": result.data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # 로컬 개발용 (배포에는 영향 없음)
 if __name__ == "__main__":
     app.run(debug=True)
