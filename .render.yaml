@@ -3,4 +3,4 @@ services:
     name: blog-dashboard-api
     runtime: python
     buildCommand: ""
-    startCommand: "python app.py"
+    start Command: gunicorn app:app
