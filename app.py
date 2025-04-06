@@ -1,41 +1,43 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import json
+from supabase import create_client, Client
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-DATA_FILE = 'data.json'
+# Supabase 연결 정보
+SUPABASE_URL = "https://vyzpmuvueoqibapjmxrq.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5enBtdXZ1ZW9xaWJhcGpteHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM5NTEyODgsImV4cCI6MjA1OTUyNzI4OH0.OjVZ_8Qdc3d7a9IIdUvEZ575RZbN2zykfHSsTVGBbM4"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+TABLE_NAME = "blogs"
 
 @app.route('/')
 def home():
-    return '🚀 Blog Dashboard API is running!'
+    return '🚀 Supabase Blog Dashboard API is running!'
 
 @app.route('/add', methods=['POST'])
 def add_blog():
-    new_blog = request.get_json()
-    if not new_blog:
-        return jsonify({'error': 'No data received'}), 400
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data received"}), 400
 
     try:
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            blogs = json.load(f)
-    except FileNotFoundError:
-        blogs = []
-
-    blogs.append(new_blog)
-
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(blogs, f, ensure_ascii=False, indent=2)
-
-    return jsonify({'message': 'Blog added!', 'total': len(blogs)}), 200
-
+        result = supabase.table(TABLE_NAME).insert(data).execute()
+        if result.error:
+            return jsonify({"error": str(result.error)}), 500
+        return jsonify({"message": "Blog added!", "data": result.data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/data', methods=['GET'])
-def get_data():
+def get_blogs():
     try:
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            blogs = json.load(f)
-        return jsonify(blogs), 200
-    except:
-        return jsonify({'error': 'Cannot read data'}), 500
+        result = supabase.table(TABLE_NAME).select("*").order("created_at", desc=True).execute()
+        if result.error:
+            return jsonify({"error": str(result.error)}), 500
+        return jsonify(result.data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
