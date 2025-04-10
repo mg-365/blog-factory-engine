@@ -48,3 +48,8 @@ def delete_blog():
 # 로컬 개발용 (배포에는 영향 없음)
 if __name__ == "__main__":
     app.run(debug=True)
+
+# 서버 슬립 방지 10분마다 호출
+@app.route("/ping")
+def ping():
+    return "pong", 200
