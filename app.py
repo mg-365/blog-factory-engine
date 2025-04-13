@@ -18,45 +18,47 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # 저품질 체크 파트1 (이것들도 여기서 필요해서 추가 선언함 from bs4 import BeautifulSoup import requests)
 def check_daum_status(blog_url):
     search_url = f"https://search.daum.net/search?w=site&q={blog_url}"
-    
     try:
         response = requests.get(search_url, headers={"User-Agent": "Mozilla/5.0"})
-        soup = BeautifulSoup(response.text, "html.parser")
+        soup = BeautifulSoup(response.text, "html5lib")  # ✅ 핵심
 
-        # ✅ 글 갯수 파악
         posts = soup.select("a.f_link_b")
         글수 = len(posts)
 
-         # 사이트 노출 여부 판단 (href 속성으로 정확히 비교)
-        #site_section = soup.select_one("a.f_url")
-        site_section = soup.select_one("a.f_url")
-        site_text = site_section.get_text(strip=True) if site_section else ""
-        print(f"📌 사이트 표시 텍스트: {site_text}")
+        site_section = soup.select_one(".f_url")  # 여전히 시도
 
-        # 확인용 로그 출력
-        print(f"🔍 진단 대상: {blog_url}")
-        print(f"🔗 추출된 href: {site_section.get('href') if site_section else '없음'}")
+        사이트노출 = False
+        if site_section:
+            href = site_section.get("href", "")
+            비교값 = blog_url.replace("https://", "").rstrip("/")
+            print(f"🔎 site_section href: {href}")
+            print(f"🔍 비교 대상: {비교값}")
+            사이트노출 = 비교값 in href
+        else:
+            print("⚠️ .f_url 요소를 찾을 수 없음. a[href] 기반 재시도")
 
-        #사이트노출 = (
-        #    site_section is not None
-        #    and blog_url.replace("https://", "").rstrip("/") in site_section.get("href", "")
-        #)
-
-        사이트노출 = site_section is not None and blog_url.replace("https://", "").rstrip("/") in site_text.replace("/", "")
-
+            # 보조 수단: 전체 a 태그 돌면서 확인
+            anchors = soup.find_all("a", href=True)
+            for a in anchors:
+                if blog_url.replace("https://", "").rstrip("/") in a["href"]:
+                    print(f"✅ 대체 방식으로 사이트 노출 감지됨: {a['href']}")
+                    사이트노출 = True
+                    break
 
         return {
             "글수진단": 글수,
             "사이트노출": 사이트노출,
             "검색링크": search_url
         }
+
     except Exception as e:
-        print(f"[진단 오류] {blog_url} → {e}")
+        print(f"⚠️ 진단 오류: {blog_url} → {e}")
         return {
             "글수진단": 0,
             "사이트노출": False,
             "검색링크": search_url
         }
+
 
 # 저품질 체크 파트2
 @app.route("/diagnose")
