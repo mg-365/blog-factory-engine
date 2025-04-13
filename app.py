@@ -28,8 +28,11 @@ def check_daum_status(blog_url):
 
         # ✅ 사이트 노출 여부 정확하게 체크
         # 개선된 코드
-        site_section = soup.select_one("a.f_url, .wrap_cont .f_link_b")
-        사이트노출 = site_section is not None and blog_url.replace("https://", "").rstrip("/") in site_section.text.replace("https://", "").rstrip("/")
+        #site_section = soup.select_one("a.f_url, .wrap_cont .f_link_b")
+        #사이트노출 = site_section is not None and blog_url.replace("https://", "").rstrip("/") in site_section.text.replace("https://", "").rstrip("/")
+        site_section = soup.select_one("a.f_url")
+        사이트노출 = site_section is not None and blog_url.replace("https://", "").rstrip("/") in site_section.get("href", "").replace("https://", "").rstrip("/")
+
 
 
         return {
