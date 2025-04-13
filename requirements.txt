@@ -2,3 +2,4 @@ flask
 flask-cors
 gunicorn
 supabase
+beautifulsoup4
