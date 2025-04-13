@@ -51,7 +51,7 @@ def diagnose_all_blogs():
     blogs = result.data
 
     for blog in blogs:
-        url = blog.get("url")
+        url = blog.get("name")
         print(f"🔎 블로그 대상: {url}")  # 이 줄 추가
         if not url:
             continue
