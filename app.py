@@ -62,7 +62,8 @@ def diagnose_all_blogs():
             "검색링크": status["검색링크"]
         }).eq("id", blog["id"]).execute()
 
-    return jsonify({"message": f"{len(blogs)}개 블로그 진단 완료"}), 200
+    return jsonify({"message": f"{len(blogs)}개 블로그 진단 완료"}), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
 
 
 
