@@ -46,11 +46,13 @@ def check_daum_status(blog_url):
 # 저품질 체크 파트2
 @app.route("/diagnose")
 def diagnose_all_blogs():
+    print("💬 /diagnose 엔드포인트 실행됨")  # 이 줄 추가
     result = supabase.table(TABLE_NAME).select("*").execute()
     blogs = result.data
 
     for blog in blogs:
         url = blog.get("url")
+        print(f"🔎 블로그 대상: {url}")  # 이 줄 추가
         if not url:
             continue
 
