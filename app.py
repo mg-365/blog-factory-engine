@@ -17,33 +17,37 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 저품질 체크 파트1 (이것들도 여기서 필요해서 추가 선언함 from bs4 import BeautifulSoup import requests)
 def check_daum_status(blog_url):
-    import requests
-    from bs4 import BeautifulSoup
-
     search_url = f"https://search.daum.net/search?w=site&q={blog_url}"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-
     try:
-        response = requests.get(search_url, headers=headers)
-        soup = BeautifulSoup(response.text, "html5lib")  # 핵심 수정!
+        response = requests.get(search_url, headers={"User-Agent": "Mozilla/5.0"})
+        soup = BeautifulSoup(response.text, "html5lib")  # ✅ 핵심
 
         posts = soup.select("a.f_link_b")
         글수 = len(posts)
 
-        site_section = soup.select_one("a.f_url")
-        href_value = site_section.get("href") if site_section else None
-        print(f"📌 사이트 표시 텍스트: {site_section.text if site_section else '없음'}")
-        print(f"📎 추출된 href: {href_value if href_value else '없음'}")
+        site_section = soup.select_one(".f_url")  # 여전히 시도
 
-        # 정제 비교 (http/https, www 등 제거)
-        clean_blog = blog_url.replace("https://", "").replace("http://", "").replace("www.", "").rstrip("/")
-        site노출 = site_section is not None and clean_blog in href_value if href_value else False
+        사이트노출 = False
+        if site_section:
+            href = site_section.get("href", "")
+            비교값 = blog_url.replace("https://", "").rstrip("/")
+            print(f"🔎 site_section href: {href}")
+            print(f"🔍 비교 대상: {비교값}")
+            사이트노출 = 비교값 in href
+        else:
+            print("⚠️ .f_url 요소를 찾을 수 없음. a[href] 기반 재시도")
+
+            # 보조 수단: 전체 a 태그 돌면서 확인
+            anchors = soup.find_all("a", href=True)
+            for a in anchors:
+                if blog_url.replace("https://", "").rstrip("/") in a["href"]:
+                    print(f"✅ 대체 방식으로 사이트 노출 감지됨: {a['href']}")
+                    사이트노출 = True
+                    break
 
         return {
             "글수진단": 글수,
-            "사이트노출": site노출,
+            "사이트노출": 사이트노출,
             "검색링크": search_url
         }
 
@@ -54,6 +58,8 @@ def check_daum_status(blog_url):
             "사이트노출": False,
             "검색링크": search_url
         }
+
+
 
 
 
