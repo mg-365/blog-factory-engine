@@ -54,15 +54,29 @@ def diagnose_all_blogs():
         if not url:
             continue
 
+        
+        print(f"[진단 대상] {url}")
         status = check_daum_status(url)
+        print(f"[진단 결과] {status}")
+        
 
-        supabase.table(TABLE_NAME).update({
-            "글수진단": status["글수진단"],
-            "사이트노출": status["사이트노출"],
-            "검색링크": status["검색링크"]
-        }).eq("id", blog["id"]).execute()
+        try:
+            supabase.table(TABLE_NAME).update({
+                "글수진단": status["글수진단"],
+                "사이트노출": status["사이트노출"],
+                "검색링크": status["검색링크"]
+            }).eq("id", blog["id"]).execute()
+            print(f"[업데이트 완료] ID={blog['id']}")
+        except Exception as e:
+            print(f"[업데이트 실패] ID={blog.get('id')} → {e}")
 
-    return jsonify({"message": f"{len(blogs)}개 블로그 진단 완료"}), 200, {'Content-Type': 'application/json; charset=utf-8'}
+    return jsonify(
+        {"message": f"{len(blogs)}개 블로그 진단 완료"},
+        200,
+        {'Content-Type': 'application/json; charset=utf-8'}
+    )
+
+
 
 
 
