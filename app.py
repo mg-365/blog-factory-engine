@@ -27,21 +27,17 @@ def check_daum_status(blog_url):
         posts = soup.select("a.f_link_b")
         글수 = len(posts)
 
-        # ✅ 사이트 노출 확인
-        site_link = soup.select_one("a.f_url")
-        사이트노출 = False
+         # 사이트 노출 여부 판단 (href 속성으로 정확히 비교)
+        site_section = soup.select_one("a.f_url")
 
-        if site_link:
-            href = site_link.get("href", "")
-            normalized_href = href.replace("https://", "").replace("http://", "").rstrip("/")
-            normalized_blog = blog_url.replace("https://", "").replace("http://", "").rstrip("/")
+        # 확인용 로그 출력
+        print(f"🔍 진단 대상: {blog_url}")
+        print(f"🔗 추출된 href: {site_section.get('href') if site_section else '없음'}")
 
-            # ✅ 비교 로그 출력
-            print(f"[사이트 비교] href: {normalized_href} / blog: {normalized_blog}")
-            사이트노출 = normalized_blog in normalized_href
-            print(f"[결과] 사이트 노출 여부: {사이트노출}")
-        else:
-            print("[경고] f_url 요소를 찾을 수 없습니다.")
+        사이트노출 = (
+            site_section is not None
+            and blog_url.replace("https://", "").rstrip("/") in site_section.get("href", "")
+        )
 
 
 
