@@ -1,6 +1,8 @@
 from supabase import create_client, Client
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from bs4 import BeautifulSoup
+import requests
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://mg-365.github.io"}})
@@ -11,6 +13,56 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 TABLE_NAME = "blog-factory-realdb"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+# 저품질 체크 파트1 (이것들도 여기서 필요해서 추가 선언함 from bs4 import BeautifulSoup import requests)
+def check_daum_status(blog_url):
+    search_url = f"https://search.daum.net/search?w=site&q={blog_url}"
+    
+    try:
+        response = requests.get(search_url, headers={"User-Agent": "Mozilla/5.0"})
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        posts = soup.select("a.f_link_b")
+        글수 = len(posts)
+        사이트노출 = "님의 블로그입니다" in soup.text
+
+        return {
+            "글수진단": 글수,
+            "사이트노출": 사이트노출,
+            "검색링크": search_url
+        }
+    except Exception as e:
+        print(f"[진단 오류] {blog_url} → {e}")
+        return {
+            "글수진단": 0,
+            "사이트노출": False,
+            "검색링크": search_url
+        }
+
+# 저품질 체크 파트2
+@app.route("/diagnose")
+def diagnose_all_blogs():
+    result = supabase.table(TABLE_NAME).select("*").execute()
+    blogs = result.data
+
+    for blog in blogs:
+        url = blog.get("url")
+        if not url:
+            continue
+
+        status = check_daum_status(url)
+
+        supabase.table(TABLE_NAME).update({
+            "글수진단": status["글수진단"],
+            "사이트노출": status["사이트노출"],
+            "검색링크": status["검색링크"]
+        }).eq("id", blog["id"]).execute()
+
+    return jsonify({"message": f"{len(blogs)}개 블로그 진단 완료"}), 200
+
+
+
 
 @app.route("/add", methods=["POST"])
 def add_blog():
