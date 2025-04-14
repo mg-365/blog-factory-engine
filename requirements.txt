@@ -7,3 +7,4 @@ beautifulsoup4
 html5lib
 selenium==4.11.2 
 chromedriver-autoinstaller  # 자동 설치 용도 (지금은 수동 경로로 해결 중이므로 옵션)
+python-dotenv
