@@ -51,15 +51,18 @@ def get_headless_driver():
 
 
 def check_daum_status(blog_url):
+   def check_daum_status(blog_url):
     print(f"👀 check_daum_status 시작: {blog_url}")
     search_url = f"https://search.daum.net/search?w=site&q={blog_url}"
     글수 = 0
     사이트노출 = False
 
+    driver = None  # ✅ 선언
+
     try:
         driver = get_headless_driver()
         driver.get(search_url)
-        time.sleep(2)  # 페이지 로딩 대기
+        time.sleep(2)
 
         posts = driver.find_elements(By.CSS_SELECTOR, "a.f_link_b")
         글수 = len(posts)
@@ -72,7 +75,6 @@ def check_daum_status(blog_url):
             print(f"🔎 .f_url 기준 href: {href}")
             사이트노출 = 비교값 in href
         except:
-            print("⚠️ .f_url 요소가 없음 → 전체 링크에서 대체 검사")
             anchors = driver.find_elements(By.CSS_SELECTOR, "a[href]")
             for a in anchors:
                 href = a.get_attribute("href")
@@ -80,8 +82,6 @@ def check_daum_status(blog_url):
                     print(f"✅ 대체 방식 노출 감지: {href}")
                     사이트노출 = True
                     break
-
-        driver.quit()
 
     except Exception as e:
         print(f"⚠️ 진단 오류 발생: {e}")
@@ -91,8 +91,8 @@ def check_daum_status(blog_url):
             "검색링크": search_url
         }
 
-      finally:
-        if driver:  # ✅ 드라이버가 존재하면 종료
+    finally:
+        if driver:  # ✅ 누락 방지
             driver.quit()
 
     return {
