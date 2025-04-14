@@ -225,7 +225,8 @@ def delete_blog():
 
 # 로컬 개발용 (배포에는 영향 없음)
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000)
+
 
 # 서버 슬립 방지 10분마다 호출
 @app.route("/ping")
