@@ -1,10 +1,10 @@
 FROM python:3.10-slim
 
 RUN apt-get update && apt-get install -y \
-    chromium-driver \
     chromium \
-    && ln -s /usr/bin/chromium /usr/bin/google-chrome \   # ✅ 핵심: chromedriver가 찾을 이름
-    && rm -rf /var/lib/apt/lists/*
+    chromium-driver \
+ && ln -s /usr/bin/chromium /usr/bin/google-chrome \
+ && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="/usr/bin/:${PATH}"
 ENV CHROME_BIN="/usr/bin/google-chrome"
