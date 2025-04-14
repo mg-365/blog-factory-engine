@@ -29,17 +29,20 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 저품질 체크용, 크롬드라이버 설정 함수
 def get_headless_driver():
-    chromedriver_autoinstaller.install()  # 👈 자동으로 설치하고 경로 잡아줌
+    import chromedriver_autoinstaller
+    chromedriver_autoinstaller.install()  # ✅ 자동 경로 지정
+
     options = Options()
-    options.binary_location = "/usr/bin/chrome"  # 👈 변경!
+    options.binary_location = "/usr/bin/chromium"  # ✅ Render 기준 경로
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920x1080")
 
-    driver = webdriver.Chrome(options=options)  # 👈 service 없이 options만
+    driver = webdriver.Chrome(options=options)
     return driver
+
 
 
 
