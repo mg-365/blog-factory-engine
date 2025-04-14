@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 import time
+import chromedriver_autoinstaller  # 👈 이미 설치되어 있음
 
 
 
@@ -28,7 +29,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 저품질 체크용, 크롬드라이버 설정 함수
 def get_headless_driver():
-    # chromium 실행 위치
+    chromedriver_autoinstaller.install()  # 👈 자동으로 설치하고 경로 잡아줌
     options = Options()
     options.binary_location = "/usr/bin/chromium"
     options.add_argument("--headless")
@@ -37,11 +38,7 @@ def get_headless_driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920x1080")
 
-    # chromedriver 실행 위치 명시
-    service = Service("/usr/bin/chromedriver")
-
-    # 드라이버 실행
-    driver = webdriver.Chrome(service=service, options=options)
+    driver = webdriver.Chrome(options=options)  # 👈 service 없이 options만
     return driver
 
 
