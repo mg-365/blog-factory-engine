@@ -92,6 +92,7 @@ def get_headless_driver():
 
 
 def check_daum_status(blog_url):
+    print(f"👀 check_daum_status 시작: {blog_url}")
     search_url = f"https://search.daum.net/search?w=site&q={blog_url}"
     글수 = 0
     사이트노출 = False
@@ -145,9 +146,11 @@ def check_daum_status(blog_url):
 # 저품질 체크 파트2
 @app.route("/diagnose")
 def diagnose_all_blogs():
+    print("📌 diagnose 진입함")  # 진입 여부 확실히 확인용
     print("💬 /diagnose 엔드포인트 실행됨")  # 이 줄 추가
     result = supabase.table(TABLE_NAME).select("*").execute()
     blogs = result.data
+    print(f"📌 블로그 {len(blogs)}개 로딩됨")
 
     for blog in blogs:
         url = blog.get("name")
