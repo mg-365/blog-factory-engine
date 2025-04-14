@@ -19,3 +19,5 @@ EXPOSE 10000   # <-- 이 줄 추가!!
 CMD ["gunicorn", "-b", "0.0.0.0:10000", "app:app"]
 
 ENV PATH="/usr/bin/chromedriver:${PATH}"
+
+RUN ln -s /usr/bin/chromedriver /usr/local/bin/chromedriver
