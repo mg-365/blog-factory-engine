@@ -6,4 +6,3 @@ requests
 beautifulsoup4
 html5lib
 selenium
-chromedriver_autoinstaller
