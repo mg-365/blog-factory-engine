@@ -5,4 +5,4 @@ supabase
 requests
 beautifulsoup4
 html5lib
-selenium
+selenium==4.1.5
