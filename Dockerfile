@@ -17,3 +17,5 @@ RUN pip install -r requirements.txt
 EXPOSE 10000   # <-- 이 줄 추가!!
 
 CMD ["gunicorn", "-b", "0.0.0.0:10000", "app:app"]
+
+ENV PATH="/usr/bin/chromedriver:${PATH}"
