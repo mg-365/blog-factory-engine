@@ -6,6 +6,7 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 import time
 
 
@@ -28,15 +29,18 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # 저품질 체크용, 크롬드라이버 설정 함수
 def get_headless_driver():
     options = Options()
-    options.binary_location = "/usr/bin/chromium"  # 👈 이 줄 꼭 추가 (Render에서 크롬 경로)
+    options.binary_location = "/usr/bin/chromium"
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920x1080")
-    driver = webdriver.Chrome(options=options)
-    return driver
 
+    # ✅ chromedriver 경로 명시
+    service = Service(executable_path="/usr/bin/chromedriver")
+
+    driver = webdriver.Chrome(service=service, options=options)
+    return driver
 
 
 # 저품질 체크 파트1 (이것들도 여기서 필요해서 추가 선언함 from bs4 import BeautifulSoup import requests)
