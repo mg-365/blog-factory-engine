@@ -7,7 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
-import chromedriver_autoinstaller
+
 
 
 app = Flask(__name__)
@@ -27,7 +27,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 저품질 체크용, 크롬드라이버 설정 함수
 def get_headless_driver():
-    chromedriver_autoinstaller.install()  # 알아서 맞는 버전 설치됨
+    options.binary_location = "/usr/bin/chromium"  # 👈 이 줄 꼭 추가 (Render에서 크롬 경로)
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
