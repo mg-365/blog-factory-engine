@@ -91,6 +91,10 @@ def check_daum_status(blog_url):
             "검색링크": search_url
         }
 
+      finally:
+        if driver:  # ✅ 드라이버가 존재하면 종료
+            driver.quit()
+
     return {
         "글수진단": 글수,
         "사이트노출": 사이트노출,
