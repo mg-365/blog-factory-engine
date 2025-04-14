@@ -3,6 +3,12 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+import time
+import chromedriver_autoinstaller
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://mg-365.github.io"}})
@@ -15,49 +21,116 @@ TABLE_NAME = "blog-factory-realdb"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
+
+
+
+
+# 저품질 체크용, 크롬드라이버 설정 함수
+def get_headless_driver():
+    chromedriver_autoinstaller.install()  # 알아서 맞는 버전 설치됨
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920x1080")
+    driver = webdriver.Chrome(options=options)
+    return driver
+
+
+
 # 저품질 체크 파트1 (이것들도 여기서 필요해서 추가 선언함 from bs4 import BeautifulSoup import requests)
+# def check_daum_status(blog_url):
+#     search_url = f"https://search.daum.net/search?w=site&q={blog_url}"
+#     try:
+#         response = requests.get(search_url, headers={"User-Agent": "Mozilla/5.0"})
+#         soup = BeautifulSoup(response.text, "html5lib")  # ✅ 핵심
+
+#         posts = soup.select("a.f_link_b")
+#         글수 = len(posts)
+
+#         site_section = soup.select_one(".f_url")  # 여전히 시도
+
+#         사이트노출 = False
+#         if site_section:
+#             href = site_section.get("href", "")
+#             비교값 = blog_url.replace("https://", "").rstrip("/")
+#             print(f"🔎 site_section href: {href}")
+#             print(f"🔍 비교 대상: {비교값}")
+#             사이트노출 = 비교값 in href
+#         else:
+#             print("⚠️ .f_url 요소를 찾을 수 없음. a[href] 기반 재시도")
+
+#             # 보조 수단: 전체 a 태그 돌면서 확인
+#             anchors = soup.find_all("a", href=True)
+#             for a in anchors:
+#                 if blog_url.replace("https://", "").rstrip("/") in a["href"]:
+#                     print(f"✅ 대체 방식으로 사이트 노출 감지됨: {a['href']}")
+#                     사이트노출 = True
+#                     break
+
+#         return {
+#             "글수진단": 글수,
+#             "사이트노출": 사이트노출,
+#             "검색링크": search_url
+#         }
+
+#     except Exception as e:
+#         print(f"⚠️ 진단 오류: {blog_url} → {e}")
+#         return {
+#             "글수진단": 0,
+#             "사이트노출": False,
+#             "검색링크": search_url
+#         }
+
+
+
 def check_daum_status(blog_url):
     search_url = f"https://search.daum.net/search?w=site&q={blog_url}"
-    try:
-        response = requests.get(search_url, headers={"User-Agent": "Mozilla/5.0"})
-        soup = BeautifulSoup(response.text, "html5lib")  # ✅ 핵심
+    글수 = 0
+    사이트노출 = False
 
-        posts = soup.select("a.f_link_b")
+    try:
+        driver = get_headless_driver()
+        driver.get(search_url)
+        time.sleep(2)  # 페이지 로딩 대기
+
+        posts = driver.find_elements(By.CSS_SELECTOR, "a.f_link_b")
         글수 = len(posts)
 
-        site_section = soup.select_one(".f_url")  # 여전히 시도
+        비교값 = blog_url.replace("https://", "").rstrip("/")
 
-        사이트노출 = False
-        if site_section:
-            href = site_section.get("href", "")
-            비교값 = blog_url.replace("https://", "").rstrip("/")
-            print(f"🔎 site_section href: {href}")
-            print(f"🔍 비교 대상: {비교값}")
+        try:
+            site_elem = driver.find_element(By.CSS_SELECTOR, ".f_url")
+            href = site_elem.get_attribute("href")
+            print(f"🔎 .f_url 기준 href: {href}")
             사이트노출 = 비교값 in href
-        else:
-            print("⚠️ .f_url 요소를 찾을 수 없음. a[href] 기반 재시도")
-
-            # 보조 수단: 전체 a 태그 돌면서 확인
-            anchors = soup.find_all("a", href=True)
+        except:
+            print("⚠️ .f_url 요소가 없음 → 전체 링크에서 대체 검사")
+            anchors = driver.find_elements(By.CSS_SELECTOR, "a[href]")
             for a in anchors:
-                if blog_url.replace("https://", "").rstrip("/") in a["href"]:
-                    print(f"✅ 대체 방식으로 사이트 노출 감지됨: {a['href']}")
+                href = a.get_attribute("href")
+                if 비교값 in href:
+                    print(f"✅ 대체 방식 노출 감지: {href}")
                     사이트노출 = True
                     break
 
-        return {
-            "글수진단": 글수,
-            "사이트노출": 사이트노출,
-            "검색링크": search_url
-        }
+        driver.quit()
 
     except Exception as e:
-        print(f"⚠️ 진단 오류: {blog_url} → {e}")
+        print(f"⚠️ 진단 오류 발생: {e}")
         return {
             "글수진단": 0,
             "사이트노출": False,
             "검색링크": search_url
         }
+
+    return {
+        "글수진단": 글수,
+        "사이트노출": 사이트노출,
+        "검색링크": search_url
+    }
+
 
 
 
@@ -97,6 +170,10 @@ def diagnose_all_blogs():
         200,
         {'Content-Type': 'application/json; charset=utf-8'}
     )
+
+
+
+
 
 
 
