@@ -110,22 +110,25 @@ def check_daum_status(blog_url):
 @app.route("/diagnose")
 def diagnose_all_blogs():
     print("📌 diagnose 진입함")  # 진입 여부 확실히 확인용
-    print("💬 /diagnose 엔드포인트 실행됨")  # 이 줄 추가
+    print("💬 /diagnose 엔드포인트 실행됨")
+
     result = supabase.table(TABLE_NAME).select("*").execute()
     blogs = result.data
     print(f"📌 블로그 {len(blogs)}개 로딩됨")
 
     for blog in blogs:
+        if blog is None or not isinstance(blog, dict):  # ✅ 방어 코드 추가
+            print("⚠️ blog가 None이거나 dict가 아님 → 건너뜀:", blog)
+            continue
+
         url = blog.get("name")
-        print(f"🔎 블로그 대상: {url}")  # 이 줄 추가
+        print(f"🔎 블로그 대상: {url}")
         if not url:
             continue
 
-        
         print(f"[진단 대상] {url}")
         status = check_daum_status(url)
         print(f"[진단 결과] {status}")
-        
 
         try:
             supabase.table(TABLE_NAME).update({
