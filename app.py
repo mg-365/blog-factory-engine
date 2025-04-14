@@ -109,7 +109,7 @@ def check_daum_status(blog_url):
 # 저품질 체크 파트2
 @app.route("/diagnose")
 def diagnose_all_blogs():
-    print("📌 diagnose 진입함")  # 진입 여부 확실히 확인용
+    print("📌 diagnose 진입함")
     print("💬 /diagnose 엔드포인트 실행됨")
 
     result = supabase.table(TABLE_NAME).select("*").execute()
@@ -117,10 +117,6 @@ def diagnose_all_blogs():
     print(f"📌 블로그 {len(blogs)}개 로딩됨")
 
     for blog in blogs:
-        if blog is None or not isinstance(blog, dict):  # ✅ 방어 코드 추가
-            print("⚠️ blog가 None이거나 dict가 아님 → 건너뜀:", blog)
-            continue
-
         url = blog.get("name")
         print(f"🔎 블로그 대상: {url}")
         if not url:
@@ -130,11 +126,16 @@ def diagnose_all_blogs():
         status = check_daum_status(url)
         print(f"[진단 결과] {status}")
 
+        # ✅ 에러 방지: status가 None이면 건너뜀
+        if not status or not isinstance(status, dict):
+            print(f"[❌ 오류] status가 None이거나 dict 아님 → {status}")
+            continue
+
         try:
             supabase.table(TABLE_NAME).update({
-                "글수진단": status["글수진단"],
-                "사이트노출": status["사이트노출"],
-                "검색링크": status["검색링크"]
+                "글수진단": status.get("글수진단", 0),
+                "사이트노출": status.get("사이트노출", False),
+                "검색링크": status.get("검색링크", "")
             }).eq("id", blog["id"]).execute()
             print(f"[업데이트 완료] ID={blog['id']}")
         except Exception as e:
@@ -145,6 +146,7 @@ def diagnose_all_blogs():
         200,
         {'Content-Type': 'application/json; charset=utf-8'}
     )
+
 
 
 
