@@ -27,8 +27,8 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 저품질 체크용, 크롬드라이버 설정 함수
 def get_headless_driver():
-    options.binary_location = "/usr/bin/chromium"  # 👈 이 줄 꼭 추가 (Render에서 크롬 경로)
     options = Options()
+    options.binary_location = "/usr/bin/chromium"  # 👈 이 줄 꼭 추가 (Render에서 크롬 경로)
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
