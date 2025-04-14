@@ -1,26 +1,25 @@
 FROM python:3.10-slim
 
-# 🛠 필수 패키지 설치 + 심볼릭 링크 생성까지
+# ✅ 크롬 & 크롬드라이버 설치 (경로 지정은 바로 여기!)
 RUN apt-get update && apt-get install -y \
     chromium-driver \
     chromium \
-    && rm -rf /var/lib/apt/lists/* \
-    && ln -s /usr/lib/chromium/chromium /usr/bin/chrome  # 👈 chrome 실행 파일을 PATH에 등록
+    && rm -rf /var/lib/apt/lists/*
 
-# 환경 변수 설정
-ENV PATH="/usr/lib/chromium/:$PATH"
-ENV CHROME_BIN="/usr/bin/chrome"  # 👈 binary_location에 명시할 경로
+# ✅ 환경변수 추가 - PATH에 chrome/chromedriver 경로 포함
+ENV PATH="/usr/lib/chromium/:/usr/bin/:${PATH}"
+ENV CHROME_BIN="/usr/bin/chromium"
 
-# 작업 디렉토리 설정
+# ✅ 프로젝트 복사
 WORKDIR /app
 COPY . /app
 
-# pip 최신화 및 requirements 설치
+# ✅ 의존성 설치
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Render에서 포트 노출 명시
-EXPOSE 10000  # 👈 이 줄 꼭 있어야 서비스가 감지됨
+# ✅ 포트 열기
+EXPOSE 10000
 
-# 앱 실행 명령어
+# ✅ 실행 명령
 CMD ["gunicorn", "-b", "0.0.0.0:10000", "app:app"]
