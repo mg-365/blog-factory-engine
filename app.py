@@ -29,13 +29,21 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 저품질 체크용, 크롬드라이버 설정 함수
 def get_headless_driver():
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+
     options = Options()
-    options.binary_location = "/usr/bin/chromium"  # ✅ 필수!
+    options.binary_location = "/usr/bin/chromium"
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920x1080")
+    
+    # ✅ 이 라인을 추가해줘!
+    import tempfile
+    user_data_dir = tempfile.mkdtemp()
+    options.add_argument(f'--user-data-dir={user_data_dir}')
 
     driver = webdriver.Chrome(options=options)
     return driver
