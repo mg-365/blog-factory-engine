@@ -28,6 +28,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 저품질 체크용, 크롬드라이버 설정 함수
 def get_headless_driver():
+    # chromium 실행 위치
     options = Options()
     options.binary_location = "/usr/bin/chromium"
     options.add_argument("--headless")
@@ -36,9 +37,10 @@ def get_headless_driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920x1080")
 
-    # ✅ chromedriver 경로 명시
-    service = Service(executable_path="/usr/bin/chromedriver")
+    # chromedriver 실행 위치 명시
+    service = Service("/usr/bin/chromedriver")
 
+    # 드라이버 실행
     driver = webdriver.Chrome(service=service, options=options)
     return driver
 
