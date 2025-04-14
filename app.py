@@ -51,56 +51,43 @@ def get_headless_driver():
 
 
 def check_daum_status(blog_url):
-   def check_daum_status(blog_url):
-    print(f"👀 check_daum_status 시작: {blog_url}")
-    search_url = f"https://search.daum.net/search?w=site&q={blog_url}"
-    글수 = 0
-    사이트노출 = False
-
-    driver = None  # ✅ 선언
-
     try:
+        print(f"🧪 check_daum_status 실행 시작: {blog_url}")  # 추가
         driver = get_headless_driver()
+        search_url = f"https://search.daum.net/search?w=site&q={blog_url}"
         driver.get(search_url)
         time.sleep(2)
 
-        posts = driver.find_elements(By.CSS_SELECTOR, "a.f_link_b")
+        html = driver.page_source
+        soup = BeautifulSoup(html, "html.parser")
+        posts = soup.select("a.f_link_b")
         글수 = len(posts)
 
-        비교값 = blog_url.replace("https://", "").rstrip("/")
-
-        try:
-            site_elem = driver.find_element(By.CSS_SELECTOR, ".f_url")
-            href = site_elem.get_attribute("href")
-            print(f"🔎 .f_url 기준 href: {href}")
+        site_section = soup.select_one(".f_url")
+        사이트노출 = False
+        if site_section:
+            href = site_section.get("href", "")
+            비교값 = blog_url.replace("https://", "").rstrip("/")
             사이트노출 = 비교값 in href
-        except:
-            anchors = driver.find_elements(By.CSS_SELECTOR, "a[href]")
+        else:
+            # a 태그 기반으로 대체 시도
+            anchors = soup.find_all("a", href=True)
             for a in anchors:
-                href = a.get_attribute("href")
-                if 비교값 in href:
-                    print(f"✅ 대체 방식 노출 감지: {href}")
+                if blog_url.replace("https://", "").rstrip("/") in a["href"]:
                     사이트노출 = True
                     break
 
-    except Exception as e:
-        print(f"⚠️ 진단 오류 발생: {e}")
+        driver.quit()
         return {
-            "글수진단": 0,
-            "사이트노출": False,
+            "글수진단": 글수,
+            "사이트노출": 사이트노출,
             "검색링크": search_url
         }
 
-    finally:
-        if driver:  # ✅ 누락 방지
-            driver.quit()
-
-    return {
-        "글수진단": 글수,
-        "사이트노출": 사이트노출,
-        "검색링크": search_url
-    }
-
+    except Exception as e:
+        print(f"❌ [진단 에러 발생]: {e}")  # 반드시 이 줄 넣기
+        driver.quit()  # finally가 아니므로 여기서 꼭 종료시켜야 함
+        return None
 
 
 
